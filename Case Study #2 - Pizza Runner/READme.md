@@ -7,7 +7,7 @@
 
 # 🍕 Case Study #2 - Pizza Runner
 <p align="center">
-<img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/pizza_runner.png" width=40% height=40%>
+<img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/pizza_runner.png" width=50% height=50%>
 
 ## 📕 Table Of Contents
   - 🛠️ [Problem Statement](#problem-statement)
@@ -33,7 +33,7 @@
 ## 🛠️ ER Diagram
 
 <p align="center">
-<img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/Pizza%20Runner.png" width=40% height=40%>
+<img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/Pizza%20Runner.png" width=100% height=100%>
   
   
 ## 📂 Dataset
