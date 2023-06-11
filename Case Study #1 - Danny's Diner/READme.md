@@ -5,12 +5,13 @@
 [![View My Profile](https://img.shields.io/badge/View-My_Profile-green?logo=GitHub)](https://github.com/thecoddiwompler)
 
 
-# 🍕 Case Study #2 - Pizza Runner
+# 🍕 Case Study #2 - Danny's Diner
 <p align="center">
 <img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/diner.png" width=50% height=50%>
 
 ## 📕 Table Of Contents
   - 🛠️ [Problem Statement](#problem-statement)
+  - 🤢 [ER Diagram](#er-diagram)
   - 📂 [Dataset](#dataset)
   - 🚀 [Solutions](#-solutions)
 
