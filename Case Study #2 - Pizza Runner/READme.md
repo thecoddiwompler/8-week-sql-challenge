@@ -12,13 +12,14 @@
 ## 📕 Table Of Contents
   - 🛠️ [Problem Statement](#problem-statement)
   - 📂 [Dataset](#dataset)
-  - ♻️ [Data Preprocessing](#️-data-preprocessing)
   - 🚀 [Solutions](#-solutions)
 
 ---
 
 ## 🛠️ Problem Statement
 
+> Did you know that over 115 million kilograms of pizza is consumed daily worldwide??? (Well according to Wikipedia anyway…)
+>
 > Danny was scrolling through his Instagram feed when something really caught his eye - “80s Retro Styling and Pizza Is The Future!”
 > 
 > Danny was sold on the idea, but he knew that pizza alone was not going to help him get seed funding to expand his new Pizza Empire - so he had one more genius idea to combine with it - he was going to Uberize it - and so **Pizza Runner** was launched!
@@ -60,20 +61,20 @@ Customer pizza orders are captured in the **```customer_orders```** table with 1
 
 |order_id|customer_id|pizza_id|exclusions|extras|order_time        |
 |--------|---------|--------|----------|------|------------------|
-|1  |101      |1       |          |      |44197.75349537037 |
-|2  |101      |1       |          |      |44197.79226851852 |
-|3  |102      |1       |          |      |44198.9940162037  |
-|3  |102      |2       |          |*null* |44198.9940162037  |
-|4  |103      |1       |4         |      |44200.558171296296|
-|4  |103      |1       |4         |      |44200.558171296296|
-|4  |103      |2       |4         |      |44200.558171296296|
-|5  |104      |1       |null      |1     |44204.87533564815 |
-|6  |101      |2       |null      |null  |44204.877233796295|
-|7  |105      |2       |null      |1     |44204.88922453704 |
-|8  |102      |1       |null      |null  |44205.99621527778 |
-|9  |103      |1       |4         |1, 5  |44206.47429398148 |
-|10 |104      |1       |null      |null  |44207.77417824074 |
-|10 |104      |1       |2, 6      |1, 4  |44207.77417824074 |
+|1  |101      |1       |          |      |2021-01-01 18:05:02 |
+|2  |101      |1       |          |      |2021-01-01 19:00:5 |
+|3  |102      |1       |          |      |2021-01-02 23:51:23  |
+|3  |102      |2       |          |*null* |2021-01-02 23:51:23  |
+|4  |103      |1       |4         |      |2021-01-04 13:23:46|
+|4  |103      |1       |4         |      |2021-01-04 13:23:46|
+|4  |103      |2       |4         |      |2021-01-04 13:23:46|
+|5  |104      |1       |null      |1     |2021-01-08 21:00:29 |
+|6  |101      |2       |null      |null  |2021-01-08 21:03:13|
+|7  |105      |2       |null      |1     |2021-01-08 21:20:29 |
+|8  |102      |1       |null      |null  |2021-01-09 23:54:33 |
+|9  |103      |1       |4         |1, 5  |2021-01-10 11:22:59 |
+|10 |104      |1       |null      |null  |2021-01-11 18:34:49 |
+|10 |104      |1       |2, 6      |1, 4  |2021-01-11 18:34:49 |
 
 </details>
 
