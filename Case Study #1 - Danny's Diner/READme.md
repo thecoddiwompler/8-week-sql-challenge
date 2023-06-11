@@ -5,7 +5,7 @@
 [![View My Profile](https://img.shields.io/badge/View-My_Profile-green?logo=GitHub)](https://github.com/thecoddiwompler)
 
 
-# 🍕 Case Study #1 - Danny's Diner
+# 🍜 Case Study #1 - Danny's Diner
 <p align="center">
 <img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/diner.png" width=50% height=50%>
 
@@ -20,12 +20,8 @@
 ## 🛠️ Problem Statement
 
 > Danny wants to use the data to answer a few simple questions about his customers, especially about their visiting patterns, how much money they’ve spent and also which menu items are their favourite. Having this deeper connection with his customers will help him deliver a better and more personalised experience for his loyal customers.
-
- <br /> 
 >
 > You can inspect the entity relationship diagram and example data below.
-
----
   
 ---
   
