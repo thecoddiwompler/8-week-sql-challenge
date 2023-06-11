@@ -27,6 +27,12 @@
 > Danny started by recruiting “runners” to deliver fresh pizza from Pizza Runner Headquarters (otherwise known as Danny’s house) and also maxed out his credit card to pay freelance developers to build a mobile app to accept orders from customers.
 
 ---
+  
+---
+  
+## 🛠️ ER Diagram
+
+(https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/Pizza%20Runner.png)
 
 ## 📂 Dataset
 Danny has shared with you 6 key datasets for this case study:
