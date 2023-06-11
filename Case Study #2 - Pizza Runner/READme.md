@@ -32,8 +32,10 @@
   
 ## 🛠️ ER Diagram
 
-(https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/Pizza%20Runner.png)
-
+<p align="center">
+<img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/Pizza%20Runner.png" width=40% height=40%>
+  
+  
 ## 📂 Dataset
 Danny has shared with you 6 key datasets for this case study:
 
