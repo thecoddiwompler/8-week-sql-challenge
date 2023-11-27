@@ -6,9 +6,10 @@
 
 # 🥑 Case Study #3: Foodie-Fi
 
-<img src="https://user-images.githubusercontent.com/81607668/129742132-8e13c136-adf2-49c4-9866-dec6be0d30f0.png" width="500" height="520" alt="image">
+<img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/foodiefi.png" width="500" height="520" alt="image">
 
 ## 📚 Table of Contents
+- [8-Week SQL Challenge](#8-week-sql-challenge)
 - [🥑 Case Study #3: Foodie-Fi](#-case-study-3-foodie-fi)
   - [📚 Table of Contents](#-table-of-contents)
   - [Business Task](#business-task)
@@ -25,11 +26,11 @@ This case study focuses on using subscription style digital data to answer impor
 
 ## Entity Relationship Diagram
 
-![image](https://user-images.githubusercontent.com/81607668/129744449-37b3229b-80b2-4cce-b8e0-707d7f48dcec.png)
+![image](https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/foodiefi_er_diagram.png)
 
 **Table 1: `plans`**
 
-<img width="207" alt="image" src="https://user-images.githubusercontent.com/81607668/135704535-a82fdd2f-036a-443b-b1da-984178166f95.png">
+<img width="207" alt="image" src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/foodiefi_plans.png">
 
 There are 5 customer plans.
 
@@ -41,7 +42,7 @@ When customers cancel their Foodie-Fi service — they will have a Churn plan re
 
 **Table 2: `subscriptions`**
 
-<img width="245" alt="image" src="https://user-images.githubusercontent.com/81607668/135704564-30250dd9-6381-490a-82cf-d15e6290cf3a.png">
+<img width="245" alt="image" src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/foodiefi_subscriptions.png">
 
 Customer subscriptions show the **exact date** where their specific `plan_id` starts.
 
