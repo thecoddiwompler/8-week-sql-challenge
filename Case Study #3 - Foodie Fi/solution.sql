@@ -274,7 +274,7 @@ WITH cte AS (
     INNER JOIN foodie_fi.plans b ON a.plan_id = b.plan_id
   WHERE
     a.plan_id IN (1, 2, 3)
-    AND EXtract(
+    AND EXTRACT(
       year
       FROM
         a.start_date
