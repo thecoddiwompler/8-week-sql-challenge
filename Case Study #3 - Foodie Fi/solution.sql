@@ -251,3 +251,74 @@ FROM
 WHERE
   a.plan_id = 2
   AND b.plan_id = 1;
+
+
+
+-- C. Challenge Payment Question
+
+
+WITH cte AS (
+  SELECT
+    a.customer_id,
+    a.plan_id,
+    b.plan_name,
+    a.start_date,
+    b.price,
+    rank() over(
+      PARTITION by a.customer_id
+      ORDER BY
+        a.start_date
+    ) rn
+  FROM
+    foodie_fi.subscriptions a
+    INNER JOIN foodie_fi.plans b ON a.plan_id = b.plan_id
+  WHERE
+    a.plan_id IN (1, 2, 3)
+    AND EXtract(
+      year
+      FROM
+        a.start_date
+    ) = 2020
+),
+stage AS (
+  SELECT
+    customer_id,
+    plan_id,
+    plan_name,
+    start_date,
+    price,
+    LAG(plan_id) OVER(
+      PARTITION by customer_id
+      ORDER BY
+        start_date
+    ) lag_plan,
+    LAG(start_date) OVER(
+      PARTITION by customer_id
+      ORDER BY
+        start_date
+    ) lag_start_date,
+    LAG(price) OVER(
+      PARTITION by customer_id
+      ORDER BY
+        start_date
+    ) lag_price,
+    rn
+  FROM
+    cte
+)
+SELECT
+  customer_id,
+  plan_id,
+  plan_name,
+  start_date,
+  CASE
+    WHEN start_date - lag_start_date < 30
+    AND plan_id IN (2, 3)
+    AND lag_plan = 1 THEN price - lag_price
+    ELSE price
+  END AS price,
+  rn payment_order
+FROM
+  stage
+ORDER BY
+  customer_id

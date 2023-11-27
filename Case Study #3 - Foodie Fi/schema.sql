@@ -1,23 +1,24 @@
 CREATE SCHEMA foodie_fi;
-SET search_path = foodie_fi;
+
+SET
+  search_path = foodie_fi;
 
 CREATE TABLE plans (
   plan_id INTEGER,
   plan_name VARCHAR(13),
-  price DECIMAL(5,2)
+  price DECIMAL(5, 2)
 );
 
-INSERT INTO plans
-  (plan_id, plan_name, price)
+INSERT INTO
+  plans (plan_id, plan_name, price)
 VALUES
   ('0', 'trial', '0'),
   ('1', 'basic monthly', '9.90'),
   ('2', 'pro monthly', '19.90'),
   ('3', 'pro annual', '199'),
-  ('4', 'churn', null);
+  ('4', 'churn', NULL);
 
 COMMIT;
-
 
 CREATE TABLE subscriptions (
   customer_id INTEGER,
@@ -25,8 +26,8 @@ CREATE TABLE subscriptions (
   start_date DATE
 );
 
-INSERT INTO subscriptions
-  (customer_id, plan_id, start_date)
+INSERT INTO
+  subscriptions (customer_id, plan_id, start_date)
 VALUES
   ('1', '0', '2020-08-01'),
   ('1', '1', '2020-08-08'),
@@ -2680,7 +2681,3 @@ VALUES
   ('1000', '4', '2020-06-04');
 
 COMMIT;
-
-
-
-
