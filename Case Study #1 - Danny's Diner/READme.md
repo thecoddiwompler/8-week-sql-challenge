@@ -18,7 +18,8 @@
     - [**```sales```**](#sales)
     - [**```menu```**](#menu)
     - [**```members```**](#members)
-  - [🛠️ Questions 🚀](#️-questions-)
+  - [🛠️ Questions](#️-questions)
+  - [🚀 Bonus Questions](#-bonus-questions)
 
 ---
 
@@ -103,7 +104,7 @@ The final members table captures the ```join_date``` when a ```customer_id``` jo
  </details>
 
 
-## 🛠️ Questions 🚀
+## 🛠️ Questions
 
 1. What is the total amount spent by each customer at the restaurant?
 2. How many days has each customer visited the restaurant?
@@ -115,3 +116,47 @@ The final members table captures the ```join_date``` when a ```customer_id``` jo
 8. What are the total items and amount spent for each member before they became a member?
 9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
 10. In the first week after a customer joins the program (including their join date), they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
+
+
+## 🚀 Bonus Questions
+
+1. Join all the things - Recreate the following table output using the available data:
+
+   | customer_id | order_date | product_name | price | member |
+    |-------------|------------|--------------|-------|--------|
+    | A           | 2021-01-01 | curry        | 15    | N      |
+    | A           | 2021-01-01 | sushi        | 10    | N      |
+    | A           | 2021-01-07 | curry        | 15    | Y      |
+    | A           | 2021-01-10 | ramen        | 12    | Y      |
+    | A           | 2021-01-11 | ramen        | 12    | Y      |
+    | A           | 2021-01-11 | ramen        | 12    | Y      |
+    | B           | 2021-01-01 | curry        | 15    | N      |
+    | B           | 2021-01-02 | curry        | 15    | N      |
+    | B           | 2021-01-04 | sushi        | 10    | N      |
+    | B           | 2021-01-11 | sushi        | 10    | Y      |
+    | B           | 2021-01-16 | ramen        | 12    | Y      |
+    | B           | 2021-02-01 | ramen        | 12    | Y      |
+    | C           | 2021-01-01 | ramen        | 12    | N      |
+    | C           | 2021-01-01 | ramen        | 12    | N      |
+    | C           | 2021-01-07 | ramen        | 12    | N      |
+
+
+2. Rank All The Things - Danny also requires further information about the ranking of customer products, but he purposely does not need the ranking for non-member purchases so he expects null ranking values for the records when customers are not yet part of the loyalty program. Output the following table:
+
+    | customer_id | order_date | product_name | price | member | ranking |
+    |-------------|------------|--------------|-------|--------|---------|
+    | A           | 2021-01-01 | curry        | 15    | N      | null    |
+    | A           | 2021-01-01 | sushi        | 10    | N      | null    |
+    | A           | 2021-01-07 | curry        | 15    | Y      | 1       |
+    | A           | 2021-01-10 | ramen        | 12    | Y      | 2       |
+    | A           | 2021-01-11 | ramen        | 12    | Y      | 3       |
+    | A           | 2021-01-11 | ramen        | 12    | Y      | 3       |
+    | B           | 2021-01-01 | curry        | 15    | N      | null    |
+    | B           | 2021-01-02 | curry        | 15    | N      | null    |
+    | B           | 2021-01-04 | sushi        | 10    | N      | null    |
+    | B           | 2021-01-11 | sushi        | 10    | Y      | 1       |
+    | B           | 2021-01-16 | ramen        | 12    | Y      | 2       |
+    | B           | 2021-02-01 | ramen        | 12    | Y      | 3       |
+    | C           | 2021-01-01 | ramen        | 12    | N      | null    |
+    | C           | 2021-01-01 | ramen        | 12    | N      | null    |
+    | C           | 2021-01-07 | ramen        | 12    | N      | null    |
