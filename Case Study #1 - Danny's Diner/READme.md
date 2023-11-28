@@ -9,10 +9,16 @@
 <img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/diner.png" width=50% height=50%>
 
 ## 📚 Table of Contents
-- [🛠️ Problem Statement](#problem-statement)
-- [🤢 ER Diagram](#er-diagram)
-- [📂 Dataset](#dataset)
-- [🛠️ Questions](#questions)
+- [8-Week SQL Challenge](#8-week-sql-challenge)
+- [🍜 Case Study #1 - Danny's Diner](#-case-study-1---dannys-diner)
+  - [📚 Table of Contents](#-table-of-contents)
+  - [🛠️ Problem Statement](#️-problem-statement)
+  - [🛠️ ER Diagram](#️-er-diagram)
+  - [📂 Dataset](#-dataset)
+    - [**```sales```**](#sales)
+    - [**```menu```**](#menu)
+    - [**```members```**](#members)
+  - [🛠️ Questions 🚀](#️-questions-)
 
 ---
 
