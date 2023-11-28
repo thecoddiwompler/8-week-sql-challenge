@@ -1,0 +1,1 @@
+docker run --name thecoddiwompler -p 5432:5432 -e POSTGRES_USER=thecoddiwompler -e POSTGRES_PASSWORD=Asdfghjkl -e POSTGRES_DB=sql-case-study -d postgres
