@@ -4,16 +4,15 @@
 [![View Repositories](https://img.shields.io/badge/View-My_Repositories-blue?logo=GitHub)](https://github.com/thecoddiwompler?tab=repositories)
 [![View My Profile](https://img.shields.io/badge/View-My_Profile-green?logo=GitHub)](https://github.com/thecoddiwompler)
 
-
 # 🍜 Case Study #1 - Danny's Diner
 <p align="center">
 <img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/diner.png" width=50% height=50%>
 
-## 📕 Table Of Contents
-  - 🛠️ [Problem Statement](#problem-statement)
-  - 🤢 [ER Diagram](#er-diagram)
-  - 📂 [Dataset](#dataset)
-  - 🚀 [Solutions](#-solutions)
+## 📚 Table of Contents
+- [🛠️ Problem Statement](#problem-statement)
+- [🤢 ER Diagram](#er-diagram)
+- [📂 Dataset](#dataset)
+- [🛠️ Questions](#questions)
 
 ---
 
@@ -96,3 +95,17 @@ The final members table captures the ```join_date``` when a ```customer_id``` jo
 |B          |1/9/2021  |
 
  </details>
+
+
+## 🛠️ Questions 🚀
+
+1. What is the total amount spent by each customer at the restaurant?
+2. How many days has each customer visited the restaurant?
+3. What was the first item from the menu purchased by each customer?
+4. What is the most purchased item on the menu, and how many times was it purchased by all customers?
+5. Which item was the most popular for each customer?
+6. Which item was purchased first by the customer after they became a member?
+7. Which item was purchased just before the customer became a member?
+8. What are the total items and amount spent for each member before they became a member?
+9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+10. In the first week after a customer joins the program (including their join date), they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
