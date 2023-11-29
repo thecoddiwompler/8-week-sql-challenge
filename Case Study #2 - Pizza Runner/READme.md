@@ -10,11 +10,25 @@
 <img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/pizza_runner.png" width=50% height=50%>
 
 ## 📕 Table Of Contents
-  - 🛠️ [Problem Statement](#problem-statement)
-  - 📂 [Dataset](#dataset)
-  - 🚀 [Solutions](#-solutions)
+- [8-Week SQL Challenge](#8-week-sql-challenge)
+- [🍕 Case Study #2 - Pizza Runner](#-case-study-2---pizza-runner)
+  - [📕 Table Of Contents](#-table-of-contents)
+  - [Overview](#overview)
+  - [🛠️ Problem Statement](#️-problem-statement)
+  - [🛠️ ER Diagram](#️-er-diagram)
+- [Pizza Runner SQL Case Study](#pizza-runner-sql-case-study)
+  - [A. Pizza Metrics](#a-pizza-metrics)
+  - [B. Runner and Customer Experience](#b-runner-and-customer-experience)
+  - [C. Ingredient Optimization](#c-ingredient-optimization)
+  - [D. Pricing and Ratings](#d-pricing-and-ratings)
+  - [E. Bonus Questions](#e-bonus-questions)
 
 ---
+
+## Overview
+
+- **Data Inspection:** Before diving into the questions, investigate the data, and consider handling null values and data types in the customer_orders and runner_orders tables.
+
 
 ## 🛠️ Problem Statement
 
@@ -35,143 +49,86 @@
 <p align="center">
 <img src="https://github.com/thecoddiwompler/8-week-sql-challenge/blob/main/IMG/Pizza%20Runner.png" width=100% height=100%>
   
-  
-## 📂 Dataset
-Danny has shared with you 6 key datasets for this case study:
-
-### **```runners```**
-<details>
-<summary>
-View table
-</summary>
-
-The runners table shows the **```registration_date```** for each new runner.
-
-
-|runner_id|registration_date|
-|---------|-----------------|
-|1        |1/1/2021         |
-|2        |1/3/2021         |
-|3        |1/8/2021         |
-|4        |1/15/2021        |
-
-</details>
-
-
-### **```customer_orders```**
-
-<details>
-<summary>
-View table
-</summary>
-
-Customer pizza orders are captured in the **```customer_orders```** table with 1 row for each individual pizza that is part of the order.
-
-|order_id|customer_id|pizza_id|exclusions|extras|order_time        |
-|--------|---------|--------|----------|------|------------------|
-|1  |101      |1       |          |      |2021-01-01 18:05:02 |
-|2  |101      |1       |          |      |2021-01-01 19:00:5 |
-|3  |102      |1       |          |      |2021-01-02 23:51:23  |
-|3  |102      |2       |          |*null* |2021-01-02 23:51:23  |
-|4  |103      |1       |4         |      |2021-01-04 13:23:46|
-|4  |103      |1       |4         |      |2021-01-04 13:23:46|
-|4  |103      |2       |4         |      |2021-01-04 13:23:46|
-|5  |104      |1       |null      |1     |2021-01-08 21:00:29 |
-|6  |101      |2       |null      |null  |2021-01-08 21:03:13|
-|7  |105      |2       |null      |1     |2021-01-08 21:20:29 |
-|8  |102      |1       |null      |null  |2021-01-09 23:54:33 |
-|9  |103      |1       |4         |1, 5  |2021-01-10 11:22:59 |
-|10 |104      |1       |null      |null  |2021-01-11 18:34:49 |
-|10 |104      |1       |2, 6      |1, 4  |2021-01-11 18:34:49 |
-
-</details>
-
-### **```runner_orders```**
-
-<details>
-<summary>
-View table
-</summary>
-
-After each orders are received through the system - they are assigned to a runner - however not all orders are fully completed and can be cancelled by the restaurant or the customer.
-
-The **```pickup_time```** is the timestamp at which the runner arrives at the Pizza Runner headquarters to pick up the freshly cooked pizzas. 
-
-The **```distance```** and **```duration```** fields are related to how far and long the runner had to travel to deliver the order to the respective customer.
-
-
-
-|order_id|runner_id|pickup_time|distance  |duration|cancellation      |
-|--------|---------|-----------|----------|--------|------------------|
-|1       |1        |1/1/2021 18:15|20km      |32 minutes|                  |
-|2       |1        |1/1/2021 19:10|20km      |27 minutes|                  |
-|3       |1        |1/3/2021 0:12|13.4km    |20 mins |*null*             |
-|4       |2        |1/4/2021 13:53|23.4      |40      |*null*             |
-|5       |3        |1/8/2021 21:10|10        |15      |*null*             |
-|6       |3        |null       |null      |null    |Restaurant Cancellation|
-|7       |2        |1/8/2020 21:30|25km      |25mins  |null              |
-|8       |2        |1/10/2020 0:15|23.4 km   |15 minute|null              |
-|9       |2        |null       |null      |null    |Customer Cancellation|
-|10      |1        |1/11/2020 18:50|10km      |10minutes|null              |
-
-</details>
-
-### **```pizza_names```**
-
-<details>
-<summary>
-View table
-</summary>
-
-|pizza_id|pizza_name|
-|--------|----------|
-|1       |Meat Lovers|
-|2       |Vegetarian|
-
-</details>
-
-### **```pizza_recipes```**
-
-<details>
-<summary>
-View table
-</summary>
-
-Each **```pizza_id```** has a standard set of **```toppings```** which are used as part of the pizza recipe.
-
-
-|pizza_id|toppings |
-|--------|---------|
-|1       |1, 2, 3, 4, 5, 6, 8, 10| 
-|2       |4, 6, 7, 9, 11, 12| 
-
-</details>
-
-### **```pizza_toppings```**
-
-<details>
-<summary>
-View table
-</summary>
-
-This table contains all of the **```topping_name```** values with their corresponding **```topping_id```** value.
-
-
-|topping_id|topping_name|
-|----------|------------|
-|1         |Bacon       | 
-|2         |BBQ Sauce   | 
-|3         |Beef        |  
-|4         |Cheese      |  
-|5         |Chicken     |     
-|6         |Mushrooms   |  
-|7         |Onions      |     
-|8         |Pepperoni   | 
-|9         |Peppers     |   
-|10        |Salami      | 
-|11        |Tomatoes    | 
-|12        |Tomato Sauce|
-
-</details>
-
 ---
+
+# Pizza Runner SQL Case Study
+
+This case study has LOTS of questions - they are broken up by area of focus including:
+
+- Pizza Metrics
+- Runner and Customer Experience
+- Ingredient Optimisation
+- Pricing and Ratings
+- Bonus DML Challenges (DML = Data Manipulation Language)
+
+Each of the following case study questions can be answered using a single SQL statement.
+
+Again, there are many questions in this case study - please feel free to pick and choose which ones you’d like to try!
+
+Before you start writing your SQL queries, however - you might want to investigate the data; you may want to do something with some of those null values and data types in the customer_orders and runner_orders tables!
+
+
+
+## A. Pizza Metrics
+
+1. How many pizzas were ordered?
+2. How many unique customer orders were made?
+3. How many successful orders were delivered by each runner?
+4. How many of each type of pizza was delivered?
+5. How many Vegetarian and Meatlovers were ordered by each customer?
+6. What was the maximum number of pizzas delivered in a single order?
+7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+8. How many pizzas were delivered that had both exclusions and extras?
+9. What was the total volume of pizzas ordered for each hour of the day?
+10. What was the volume of orders for each day of the week?
+
+
+## B. Runner and Customer Experience
+
+11. How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
+12. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pick up the order?
+13. Is there any relationship between the number of pizzas and how long the order takes to prepare?
+14. What was the average distance traveled for each customer?
+15. What was the difference between the longest and shortest delivery times for all orders?
+16. What was the average speed for each runner for each delivery, and do you notice any trends for these values?
+17. What is the successful delivery percentage for each runner?
+
+## C. Ingredient Optimization
+
+18. What are the standard ingredients for each pizza?
+19. What was the most commonly added extra?
+20. What was the most common exclusion?
+21. Generate an alphabetically ordered comma-separated ingredient list for each pizza order in the format of one of the following:**
+       - Meat Lovers
+       - Meat Lovers - Exclude Beef
+       - Meat Lovers - Extra Bacon
+       - Meat Lovers - Exclude Cheese, Bacon - Extra Mushroom, Peppers
+22. Generate an alphabetically ordered comma-separated ingredient list for each pizza order from the `customer_orders` table and add a 2x in front of any relevant ingredients.
+   - For example: "Meat Lovers: 2xBacon, Beef, ... , Salami" 
+
+23. What is the total quantity of each ingredient used in all delivered pizzas sorted by most frequent first?
+
+## D. Pricing and Ratings
+
+24. If a Meat Lovers pizza costs $12 and Vegetarian costs $10 and there were no charges for changes - how much money has Pizza Runner made so far if there are no delivery fees?
+25. What if there was an additional $1 charge for any pizza extras? Add cheese is $1 extra.
+26. The Pizza Runner team now wants to add an additional ratings system that allows customers to rate their runner. How would you design an additional table for this new dataset? Generate a schema for this new table and insert your own data for ratings for each successful customer order between 1 to 5.
+27. Using your newly generated table, can you join all of the information together to form a table which has the following information for successful deliveries?
+       - customer_id
+       - order_id
+       - runner_id
+       - rating
+       - order_time
+       - pickup_time
+       - Time between order and pickup
+       - Delivery duration
+       - Average speed
+       - Total number of pizzas
+28. If a Meat Lovers pizza was $12 and Vegetarian $10 fixed prices with no cost for extras, and each runner is paid $0.30 per kilometer traveled - how much money does Pizza Runner have left over after these deliveries?
+
+
+## E. Bonus Questions
+
+29. If Danny wants to expand his range of pizzas - how would this impact the existing data design? Write an INSERT statement to demonstrate what would happen if a new Supreme pizza with all the toppings was added to the Pizza Runner menu?
+
+Feel free to choose and answer the questions that interest you. Happy querying!
