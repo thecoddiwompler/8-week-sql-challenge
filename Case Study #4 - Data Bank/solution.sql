@@ -293,86 +293,514 @@ ORDER BY
 
 -- Assumption- It has been assumed that the question is asking for the percentage of customers who increased their closing balance by more than 5% in every single month.
 
-WITH all_transactions AS (
-  SELECT
-    customer_id,
-    TO_CHAR(txn_date, 'MonthYYYY') month_name,
-    TO_CHAR(txn_date, 'MM') month_num,
-    TO_CHAR(txn_date, 'YY') year_num,
-    SUM(
-      CASE
-        WHEN txn_type = 'deposit' THEN txn_amount
-        ELSE txn_amount *(-1)
-      END
-    ) total_transaction
-  FROM
-    data_bank.customer_transactions
-  GROUP BY
-    customer_id,
-    TO_CHAR(txn_date, 'MonthYYYY'),
-    TO_CHAR(txn_date, 'MM'),
-    TO_CHAR(txn_date, 'YY')
-),
-month_end_balance AS (
-  SELECT
-    customer_id,
-    month_name,
-    month_num,
-    year_num,
-    SUM(total_transaction) OVER(
-      PARTITION BY customer_id
-      ORDER BY
-        year_num,
-        month_num
-    ) month_end_balance
-  FROM
-    all_transactions
-),
-month_end_bal_perc_change AS (
-  SELECT
-    customer_id,
-    month_name,
-    month_end_balance,
-    CASE
-      WHEN LAG(month_end_balance) OVER(
-        PARTITION BY customer_id
-        ORDER BY
-          year_num,
-          month_num
-      ) != 0 THEN (
-        month_end_balance - LAG(month_end_balance) OVER(
-          PARTITION BY customer_id
-          ORDER BY
-            year_num,
-            month_num
-        )
-      ) * 100.0 / LAG(month_end_balance) OVER(
-        PARTITION BY customer_id
-        ORDER BY
-          year_num,
-          month_num
-      )
-      ELSE NULL
-    END AS percentage_change
-  FROM
-    month_end_balance
+WITH all_months AS (
+	SELECT
+		DISTINCT TO_CHAR(txn_date, 'MonthYYYY') month_name,
+		TO_CHAR(txn_date, 'MM') month_num,
+		TO_CHAR(txn_date, 'YY') year_num
+	FROM
+		data_bank.customer_transactions
 ),
 all_customers AS (
-  SELECT
-    customer_id,
-    MIN(percentage_change) min_percentage_change
-  FROM
-    month_end_bal_perc_change
-  GROUP BY
-    customer_id
+	SELECT
+		DISTINCT customer_id
+	FROM
+		data_bank.customer_transactions
+),
+all_detailed_customers AS (
+	SELECT
+		a.customer_id,
+		b.month_name,
+		b.month_num,
+		b.year_num
+	FROM
+		all_customers a
+		CROSS JOIN all_months b
+),
+all_transactions AS (
+	SELECT
+		customer_id,
+		TO_CHAR(txn_date, 'MonthYYYY') month_name,
+		TO_CHAR(txn_date, 'MM') month_num,
+		TO_CHAR(txn_date, 'YY') year_num,
+		SUM(
+			CASE
+				WHEN txn_type = 'deposit' THEN txn_amount
+				ELSE txn_amount *(-1)
+			END
+		) total_transaction
+	FROM
+		data_bank.customer_transactions
+	GROUP BY
+		customer_id,
+		TO_CHAR(txn_date, 'MonthYYYY'),
+		TO_CHAR(txn_date, 'MM'),
+		TO_CHAR(txn_date, 'YY')
+),
+all_detailed_transactions AS (
+	SELECT
+		a.customer_id,
+		a.month_name,
+		a.month_num,
+		a.year_num,
+		COALESCE(b.total_transaction, 0) total_transaction
+	FROM
+		all_detailed_customers a
+		LEFT OUTER JOIN all_transactions b ON a.month_name = b.month_name
+		AND a.customer_id = b.customer_id
+),
+month_end_balance AS (
+	SELECT
+		customer_id,
+		month_name,
+		month_num,
+		year_num,
+		SUM(total_transaction) OVER(
+			PARTITION BY customer_id
+			ORDER BY
+				year_num,
+				month_num
+		) month_end_balance
+	FROM
+		all_detailed_transactions
+),
+month_end_bal_perc_change AS (
+	SELECT
+		customer_id,
+		month_name,
+		month_end_balance,
+		CASE
+			WHEN LAG(month_end_balance) OVER(
+				PARTITION BY customer_id
+				ORDER BY
+					year_num,
+					month_num
+			) != 0 THEN (
+				month_end_balance - LAG(month_end_balance) OVER(
+					PARTITION BY customer_id
+					ORDER BY
+						year_num,
+						month_num
+				)
+			) * 100.0 / LAG(month_end_balance) OVER(
+				PARTITION BY customer_id
+				ORDER BY
+					year_num,
+					month_num
+			)
+			ELSE NULL
+		END AS percentage_change
+	FROM
+		month_end_balance
+),
+customers AS (
+	SELECT
+		customer_id,
+		MIN(percentage_change) min_percentage_change
+	FROM
+		month_end_bal_perc_change
+	GROUP BY
+		customer_id
 )
 SELECT
-  ROUND(
-    COUNT(customer_id) FILTER(
-      WHERE
-        min_percentage_change > 5
-    ) * 100.0 / COUNT(customer_id),
-    2
-  ) customer_percentage
+	ROUND(
+		COUNT(customer_id) FILTER(
+			WHERE
+				min_percentage_change > 5
+		) * 100.0 / COUNT(customer_id),
+		2
+	) customer_percentage
 FROM
-  all_customers
+	customers
+
+
+-- C. Data Allocation Challenge
+
+-- running customer balance column that includes the impact each transaction
+
+SELECT
+	customer_id,
+	txn_date,
+	SUM(
+		CASE
+			WHEN txn_type = 'deposit' THEN txn_amount
+			ELSE txn_amount *(-1)
+		END
+	) OVER(
+		PARTITION BY customer_id
+		ORDER BY
+			txn_date
+	) running_balance
+FROM
+	data_bank.customer_transactions;
+
+
+-- customer balance at the end of each month
+
+WITH all_months AS (
+	SELECT
+		DISTINCT TO_CHAR(txn_date, 'MonthYYYY') month_name,
+		TO_CHAR(txn_date, 'MM') month_num,
+		TO_CHAR(txn_date, 'YY') year_num
+	FROM
+		data_bank.customer_transactions
+),
+all_customers AS (
+	SELECT
+		DISTINCT customer_id
+	FROM
+		data_bank.customer_transactions
+),
+all_detailed_customers AS (
+	SELECT
+		a.customer_id,
+		b.month_name,
+		b.month_num,
+		b.year_num
+	FROM
+		all_customers a
+		CROSS JOIN all_months b
+),
+all_transactions AS (
+	SELECT
+		customer_id,
+		TO_CHAR(txn_date, 'MonthYYYY') month_name,
+		TO_CHAR(txn_date, 'MM') month_num,
+		TO_CHAR(txn_date, 'YY') year_num,
+		SUM(
+			CASE
+				WHEN txn_type = 'deposit' THEN txn_amount
+				ELSE txn_amount *(-1)
+			END
+		) total_transaction
+	FROM
+		data_bank.customer_transactions
+	GROUP BY
+		customer_id,
+		TO_CHAR(txn_date, 'MonthYYYY'),
+		TO_CHAR(txn_date, 'MM'),
+		TO_CHAR(txn_date, 'YY')
+),
+all_detailed_transactions AS (
+	SELECT
+		a.customer_id,
+		a.month_name,
+		a.month_num,
+		a.year_num,
+		COALESCE(b.total_transaction, 0) total_transaction
+	FROM
+		all_detailed_customers a
+		LEFT OUTER JOIN all_transactions b ON a.month_name = b.month_name
+		AND a.customer_id = b.customer_id
+)
+SELECT
+	customer_id,
+	month_name,
+	total_transaction,
+	SUM(total_transaction) OVER(
+		PARTITION BY customer_id
+		ORDER BY
+			year_num,
+			month_num
+	) month_end_balance
+FROM
+	all_detailed_transactions
+ORDER BY
+	customer_id;
+
+
+-- minimum, average, and maximum values of the running balance for each customer
+
+WITH running_balance AS (
+	SELECT
+		customer_id,
+		txn_date,
+		SUM(
+			CASE
+				WHEN txn_type = 'deposit' THEN txn_amount
+				ELSE txn_amount *(-1)
+			END
+		) OVER(
+			PARTITION BY customer_id
+			ORDER BY
+				txn_date
+		) running_balance
+	FROM
+		data_bank.customer_transactions
+)
+SELECT
+	customer_id,
+	txn_date,
+	running_balance,
+	MIN(running_balance) OVER(
+		PARTITION BY customer_id
+		ORDER BY
+			txn_date
+	) min_running_balance,
+	MAX(running_balance) OVER(
+		PARTITION BY customer_id
+		ORDER BY
+			txn_date
+	) max_running_balance,
+	ROUND(
+		AVG(running_balance) OVER(
+			PARTITION BY customer_id
+			ORDER BY
+				txn_date
+		),
+		2
+	) avg_running_balance
+FROM
+	running_balance;
+
+
+-- Option 1: data is allocated based on the amount of money at the end of the previous month
+
+-- Assumption: Some customers do not maintain a positive account balance at the end of the month. I'm assuming that no data is allocated when the amount of money at the end of the previous month is negative.
+
+WITH all_months AS (
+	SELECT
+		DISTINCT TO_CHAR(txn_date, 'MonthYYYY') month_name,
+		TO_CHAR(txn_date, 'MM') month_num,
+		TO_CHAR(txn_date, 'YY') year_num
+	FROM
+		data_bank.customer_transactions
+	UNION
+	SELECT
+		DISTINCT TO_CHAR(txn_date + 30, 'MonthYYYY') month_name,
+		TO_CHAR(txn_date + 30, 'MM') month_num,
+		TO_CHAR(txn_date + 30, 'YY') year_num
+	FROM
+		data_bank.customer_transactions
+),
+all_customers AS (
+	SELECT
+		DISTINCT customer_id
+	FROM
+		data_bank.customer_transactions
+),
+all_detailed_customers AS (
+	SELECT
+		a.customer_id,
+		b.month_name,
+		b.month_num,
+		b.year_num
+	FROM
+		all_customers a
+		CROSS JOIN all_months b
+),
+all_transactions AS (
+	SELECT
+		customer_id,
+		TO_CHAR(txn_date, 'MonthYYYY') month_name,
+		TO_CHAR(txn_date, 'MM') month_num,
+		TO_CHAR(txn_date, 'YY') year_num,
+		SUM(
+			CASE
+				WHEN txn_type = 'deposit' THEN txn_amount
+				ELSE txn_amount *(-1)
+			END
+		) total_transaction
+	FROM
+		data_bank.customer_transactions
+	GROUP BY
+		customer_id,
+		TO_CHAR(txn_date, 'MonthYYYY'),
+		TO_CHAR(txn_date, 'MM'),
+		TO_CHAR(txn_date, 'YY')
+),
+all_detailed_transactions AS (
+	SELECT
+		a.customer_id,
+		a.month_name,
+		a.month_num,
+		a.year_num,
+		COALESCE(b.total_transaction, 0) total_transaction
+	FROM
+		all_detailed_customers a
+		LEFT OUTER JOIN all_transactions b ON a.month_name = b.month_name
+		AND a.customer_id = b.customer_id
+),
+month_end_balance AS (
+	SELECT
+		customer_id,
+		month_name,
+		month_num,
+		LEAD(month_num) OVER(
+			PARTITION BY customer_id
+			ORDER BY
+				month_num
+		) next_month_num,
+		total_transaction,
+		SUM(total_transaction) OVER(
+			PARTITION BY customer_id
+			ORDER BY
+				year_num,
+				month_num
+		) month_end_balance
+	FROM
+		all_detailed_transactions
+	ORDER BY
+		customer_id
+),
+previous_month_end_balance AS (
+	SELECT
+		a.customer_id,
+		a.month_name,
+		a.month_num,
+		b.month_end_balance previous_month_end_balance
+	FROM
+		month_end_balance a
+		LEFT OUTER JOIN month_end_balance b ON a.customer_id = b.customer_id
+		AND a.month_num = b.next_month_num
+)
+SELECT
+	month_name,
+	SUM(
+		CASE
+			WHEN previous_month_end_balance < 0 THEN 0
+			ELSE previous_month_end_balance
+		END
+	) data_required
+FROM
+	previous_month_end_balance
+GROUP BY
+	month_name,
+	month_num
+ORDER BY
+	month_num
+
+
+-- Option 2: data is allocated based on the average amount of money kept in the account in the previous 30 days
+
+-- Assumption: Some customers do not maintain a positive average account in the month. I'm assuming that no data is allocated when the average balance is negative.
+
+WITH all_corner_dates AS (      -- Get the first date and last date of all the months
+	SELECT
+		DISTINCT DATE_TRUNC('month', txn_date) corner_date
+	FROM
+		data_bank.customer_transactions
+	UNION
+	SELECT
+		DISTINCT DATE_TRUNC('month', txn_date) + INTERVAL '1 month' - INTERVAL '1 day'
+	FROM
+		data_bank.customer_transactions
+),
+all_customers AS (              -- Get all the distinct customer
+	SELECT
+		DISTINCT customer_id
+	FROM
+		data_bank.customer_transactions
+),
+all_transactions AS (           -- Get all the transactions of all the dates for all the customers
+	SELECT
+		customer_id,
+		txn_date,
+		SUM(
+			CASE
+				WHEN txn_type = 'deposit' THEN txn_amount
+				ELSE txn_amount *(-1)
+			END
+		) AS transaction_amount
+	FROM
+		data_bank.customer_transactions
+	GROUP BY
+		customer_id,
+		txn_date
+	UNION
+	SELECT
+		a.customer_id,
+		b.corner_date txn_date,
+		0 AS transaction_amount
+	FROM
+		all_customers a
+		CROSS JOIN all_corner_dates b
+),
+all_detailed_transactions AS (      -- Take the union of all the transactions and all first and last dates with transaction value as 0
+	SELECT
+		customer_id,
+		txn_date,
+		COALESCE(
+			EXTRACT(
+				days
+				FROM
+					LEAD(txn_date) OVER(
+						PARTITION BY customer_id,
+						DATE_TRUNC('month', txn_date)
+						ORDER BY
+							txn_date
+					) - txn_date
+			),
+			1
+		) total_days,
+		SUM(transaction_amount) OVER(
+			PARTITION BY customer_id
+			ORDER BY
+				txn_date
+		) running_balance
+	FROM
+		all_transactions
+),
+average_balance AS (        -- Get the average balance of all the customers for all months
+	SELECT
+		customer_id,
+		TO_CHAR(txn_date, 'Month YYYY') month_name,
+		TO_CHAR(txn_date, 'MM') month_num,
+		ROUND(
+			SUM(total_days * running_balance) * 1.0 / SUM(total_days),
+			2
+		) average_balance
+	FROM
+		all_detailed_transactions
+	GROUP BY
+		customer_id,
+		TO_CHAR(txn_date, 'Month YYYY'),
+		TO_CHAR(txn_date, 'MM')
+)
+SELECT
+	month_name,
+	SUM(
+		CASE
+			WHEN average_balance > 0 THEN average_balance
+			ELSE 0
+		END
+	)
+FROM
+	average_balance
+GROUP BY
+	month_name,
+	month_num
+ORDER BY
+	month_num;
+
+
+-- Option 3: data is updated real-time
+
+WITH running_balance AS (
+	SELECT
+		DISTINCT customer_id,
+		txn_date,
+		TO_CHAR(txn_date, 'MM') month_num,
+		SUM(
+			CASE
+				WHEN txn_type = 'deposit' THEN txn_amount
+				ELSE txn_amount *(-1)
+			END
+		) OVER(
+			PARTITION BY customer_id
+			ORDER BY
+				txn_date
+		) running_balance
+	FROM
+		data_bank.customer_transactions
+)
+SELECT
+	TO_CHAR(txn_date, 'Month YYYY') month_name,
+	sum(running_balance) data_required
+FROM
+	running_balance
+GROUP BY
+	TO_CHAR(txn_date, 'Month YYYY'),
+	month_num
+ORDER BY
+	month_num
