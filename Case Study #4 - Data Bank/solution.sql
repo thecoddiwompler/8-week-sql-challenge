@@ -668,7 +668,7 @@ GROUP BY
 	month_name,
 	month_num
 ORDER BY
-	month_num
+	month_num;
 
 
 -- Option 2: data is allocated based on the average amount of money kept in the account in the previous 30 days
@@ -764,7 +764,7 @@ SELECT
 			WHEN average_balance > 0 THEN average_balance
 			ELSE 0
 		END
-	)
+	) data_allocated
 FROM
 	average_balance
 GROUP BY
@@ -776,31 +776,434 @@ ORDER BY
 
 -- Option 3: data is updated real-time
 
+-- Assumption: Some Customers have balance in negative on transaction date. It has been assumed that they do not require any Data Storage and they have been not included in calculation.
+
 WITH running_balance AS (
-	SELECT
-		DISTINCT customer_id,
-		txn_date,
-		TO_CHAR(txn_date, 'MM') month_num,
-		SUM(
-			CASE
-				WHEN txn_type = 'deposit' THEN txn_amount
-				ELSE txn_amount *(-1)
-			END
-		) OVER(
-			PARTITION BY customer_id
-			ORDER BY
-				txn_date
-		) running_balance
-	FROM
-		data_bank.customer_transactions
+  SELECT
+    DISTINCT customer_id,
+    txn_date,
+    TO_CHAR(txn_date, 'MM') month_num,
+    SUM(
+      CASE
+        WHEN txn_type = 'deposit' THEN txn_amount
+        ELSE txn_amount *(-1)
+      END
+    ) OVER(
+      PARTITION BY customer_id
+      ORDER BY
+        txn_date
+    ) running_balance
+  FROM
+    data_bank.customer_transactions
 )
 SELECT
-	TO_CHAR(txn_date, 'Month YYYY') month_name,
-	sum(running_balance) data_required
+  TO_CHAR(txn_date, 'Month YYYY') month_name,
+  sum(
+    CASE
+      WHEN running_balance > 0 THEN running_balance
+      ELSE 0
+    END
+  ) data_required
 FROM
-	running_balance
+  running_balance
 GROUP BY
-	TO_CHAR(txn_date, 'Month YYYY'),
-	month_num
+  TO_CHAR(txn_date, 'Month YYYY'),
+  month_num
 ORDER BY
-	month_num
+  month_num;
+
+
+
+-- D. Extra Challenge
+
+-- Part 1. Calculated using Simple Interest
+
+-- Option 1: data is allocated based on the amount of money at the end of the previous month
+
+-- Assumption: 
+	-- Some customers do not maintain a positive account balance at the end of the month. I'm assuming that no data is allocated when the amount of money at the end of the previous month is negative.
+	-- I have assumed interest credited is 0 when balance on that day is negative.
+
+WITH RECURSIVE date_generator(n) AS (
+  SELECT
+    DATE_TRUNC('month', MIN(txn_date)) AS txn_date
+  FROM
+    data_bank.customer_transactions
+  UNION
+  SELECT
+    n + INTERVAL '1 day' AS txn_date
+  FROM
+    date_generator
+  WHERE
+    n < (
+      SELECT
+        DATE_TRUNC('month', MAX(txn_date)) + INTERVAL '1 month' - INTERVAL '1 day'
+      FROM
+        data_bank.customer_transactions
+    )
+),
+detailed_date_customer AS (
+  SELECT
+    DISTINCT a.n txn_date,
+    b.customer_id
+  FROM
+    date_generator a
+    CROSS JOIN data_bank.customer_transactions b
+),
+total_transactions AS (
+  SELECT
+    customer_id,
+    txn_date,
+    SUM(
+      CASE
+        WHEN txn_type = 'deposit' THEN txn_amount
+        ELSE txn_amount *(-1)
+      END
+    ) txn_amount
+  FROM
+    data_bank.customer_transactions
+  GROUP BY
+    customer_id,
+    txn_date
+),
+detailed_transactions AS (
+  SELECT
+    a.txn_date,
+    a.customer_id,
+    COALESCE(b.txn_amount, 0) txn_amount
+  FROM
+    detailed_date_customer a
+    LEFT OUTER JOIN total_transactions b ON a.txn_date = b.txn_date
+    AND a.customer_id = b.customer_id
+),
+interest_calc AS (
+  SELECT
+    customer_id,
+    txn_date,
+    SUM(txn_amount) OVER(
+      PARTITION BY customer_id
+      ORDER BY
+        txn_date
+    ) running_balance,
+    CASE
+      WHEN SUM(txn_amount) OVER(
+        PARTITION BY customer_id
+        ORDER BY
+          txn_date
+      ) > 0 THEN SUM(txn_amount) OVER(
+        PARTITION BY customer_id
+        ORDER BY
+          txn_date
+      ) * (0.06 / 365)
+      ELSE 0
+    END interest_credited
+  FROM
+    detailed_transactions
+),
+cumulative_interest_calc AS (
+  SELECT
+    customer_id,
+    txn_date,
+    running_balance,
+    SUM(interest_credited) OVER(
+      PARTITION BY customer_id
+      ORDER BY
+        txn_date
+    ) cumulative_interest_earned
+  FROM
+    interest_calc
+),
+month_end_balance AS (
+  SELECT
+    customer_id,
+    txn_date,
+    running_balance + cumulative_interest_earned AS balance
+  FROM
+    cumulative_interest_calc
+  WHERE
+    txn_date = DATE_TRUNC('month', txn_date) + INTERVAL '1 month' - INTERVAL '1 day'
+)
+SELECT
+  TO_CHAR(txn_date + INTERVAL '1 day', 'Month YYYY') month_name,
+  SUM(
+    CASE
+      WHEN balance > 0 THEN balance
+      ELSE 0
+    END
+  ) data_required
+FROM
+  month_end_balance
+GROUP BY
+  txn_date
+ORDER BY
+  txn_date;
+
+
+-- Option 2: data is allocated based on the average amount of money kept in the account in the previous 30 days
+
+-- Assumption: 
+	-- Some customers do not maintain a positive average account in the month. I'm assuming that no data is allocated when the average balance is negative.
+	-- I have assumed interest credited is 0 when balance on that day is negative.
+
+WITH RECURSIVE date_generator(n) AS (
+  SELECT
+    DATE_TRUNC('month', MIN(txn_date)) AS txn_date
+  FROM
+    data_bank.customer_transactions
+  UNION
+  SELECT
+    n + INTERVAL '1 day' AS txn_date
+  FROM
+    date_generator
+  WHERE
+    n < (
+      SELECT
+        DATE_TRUNC('month', MAX(txn_date)) + INTERVAL '1 month' - INTERVAL '1 day'
+      FROM
+        data_bank.customer_transactions
+    )
+),
+detailed_date_customer AS (
+  SELECT
+    DISTINCT a.n txn_date,
+    b.customer_id
+  FROM
+    date_generator a
+    CROSS JOIN data_bank.customer_transactions b
+),
+total_transactions AS (
+  SELECT
+    customer_id,
+    txn_date,
+    SUM(
+      CASE
+        WHEN txn_type = 'deposit' THEN txn_amount
+        ELSE txn_amount *(-1)
+      END
+    ) txn_amount
+  FROM
+    data_bank.customer_transactions
+  GROUP BY
+    customer_id,
+    txn_date
+),
+detailed_transactions AS (
+  SELECT
+    a.txn_date,
+    a.customer_id,
+    COALESCE(b.txn_amount, 0) txn_amount
+  FROM
+    detailed_date_customer a
+    LEFT OUTER JOIN total_transactions b ON a.txn_date = b.txn_date
+    AND a.customer_id = b.customer_id
+),
+interest_calc AS (
+  SELECT
+    customer_id,
+    txn_date,
+    SUM(txn_amount) OVER(
+      PARTITION BY customer_id
+      ORDER BY
+        txn_date
+    ) running_balance,
+    CASE
+      WHEN SUM(txn_amount) OVER(
+        PARTITION BY customer_id
+        ORDER BY
+          txn_date
+      ) > 0 THEN SUM(txn_amount) OVER(
+        PARTITION BY customer_id
+        ORDER BY
+          txn_date
+      ) * (0.06 / 365)
+      ELSE 0
+    END interest_credited
+  FROM
+    detailed_transactions
+),
+cumulative_interest_calc AS (
+  SELECT
+    customer_id,
+    txn_date,
+    running_balance,
+    SUM(interest_credited) OVER(
+      PARTITION BY customer_id
+      ORDER BY
+        txn_date
+    ) cumulative_interest_earned
+  FROM
+    interest_calc
+),
+daily_balance_calc AS (
+  SELECT
+    customer_id,
+    txn_date,
+    running_balance + cumulative_interest_earned balance
+  FROM
+    cumulative_interest_calc
+),
+avg_monthly_balance AS (
+  SELECT
+    customer_id,
+    TO_CHAR(txn_date, 'Month YYYY') month_name,
+    TO_CHAR(txn_date, 'MM') month_no,
+    AVG(balance) avg_balance
+  FROM
+    daily_balance_calc
+  GROUP BY
+    customer_id,
+    TO_CHAR(txn_date, 'Month YYYY'),
+    TO_CHAR(txn_date, 'MM')
+)
+SELECT
+  month_name,
+  ROUND(
+    SUM(
+      CASE
+        WHEN avg_balance > 0 THEN avg_balance
+        ELSE 0
+      END
+    ),
+    2
+  ) data_required
+FROM
+  avg_monthly_balance
+GROUP BY
+  month_name,
+  month_no
+ORDER BY
+  month_no;
+
+
+-- Option 3: data is updated real-time
+
+-- Assumption:
+	-- Some Customers have balance in negative on transaction date. It has been assumed that they do not require any Data Storage and they have been not included in calculation.
+	-- I have assumed interest credited is 0 when balance on that day is negative.
+
+WITH RECURSIVE date_generator(n) AS (
+  SELECT
+    DATE_TRUNC('month', MIN(txn_date)) AS txn_date
+  FROM
+    data_bank.customer_transactions
+  UNION
+  SELECT
+    n + INTERVAL '1 day' AS txn_date
+  FROM
+    date_generator
+  WHERE
+    n < (
+      SELECT
+        DATE_TRUNC('month', MAX(txn_date)) + INTERVAL '1 month' - INTERVAL '1 day'
+      FROM
+        data_bank.customer_transactions
+    )
+),
+detailed_date_customer AS (
+  SELECT
+    DISTINCT a.n txn_date,
+    b.customer_id
+  FROM
+    date_generator a
+    CROSS JOIN data_bank.customer_transactions b
+),
+total_transactions AS (
+  SELECT
+    customer_id,
+    txn_date,
+    SUM(
+      CASE
+        WHEN txn_type = 'deposit' THEN txn_amount
+        ELSE txn_amount *(-1)
+      END
+    ) txn_amount
+  FROM
+    data_bank.customer_transactions
+  GROUP BY
+    customer_id,
+    txn_date
+),
+detailed_transactions AS (
+  SELECT
+    a.txn_date,
+    a.customer_id,
+    COALESCE(b.txn_amount, 0) txn_amount
+  FROM
+    detailed_date_customer a
+    LEFT OUTER JOIN total_transactions b ON a.txn_date = b.txn_date
+    AND a.customer_id = b.customer_id
+),
+interest_calc AS (
+  SELECT
+    customer_id,
+    txn_date,
+    SUM(txn_amount) OVER(
+      PARTITION BY customer_id
+      ORDER BY
+        txn_date
+    ) running_balance,
+    CASE
+      WHEN SUM(txn_amount) OVER(
+        PARTITION BY customer_id
+        ORDER BY
+          txn_date
+      ) > 0 THEN SUM(txn_amount) OVER(
+        PARTITION BY customer_id
+        ORDER BY
+          txn_date
+      ) * (0.06 / 365)
+      ELSE 0
+    END interest_credited
+  FROM
+    detailed_transactions
+),
+cumulative_interest_calc AS (
+  SELECT
+    customer_id,
+    txn_date,
+    running_balance,
+    SUM(interest_credited) OVER(
+      PARTITION BY customer_id
+      ORDER BY
+        txn_date
+    ) cumulative_interest_earned
+  FROM
+    interest_calc
+),
+daily_balance_calc AS (
+  SELECT
+    customer_id,
+    txn_date,
+    running_balance + cumulative_interest_earned balance
+  FROM
+    cumulative_interest_calc
+),
+total_balance_on_transaction_date AS (
+  SELECT
+    a.customer_id,
+    a.txn_amount,
+    a.txn_date,
+    b.balance
+  FROM
+    total_transactions a
+    INNER JOIN daily_balance_calc b ON a.customer_id = b.customer_id
+    AND a.txn_date = b.txn_date
+)
+SELECT
+  TO_CHAR(txn_date, 'Month YYYY') month_num,
+  ROUND(
+    SUM(
+      CASE
+        WHEN balance > 0 THEN balance
+        ELSE 0
+      END
+    ),
+    2
+  ) data_required
+FROM
+  total_balance_on_transaction_date
+GROUP BY
+  TO_CHAR(txn_date, 'Month YYYY'),
+  TO_CHAR(txn_date, 'MM')
+ORDER BY
+  TO_CHAR(txn_date, 'MM')
