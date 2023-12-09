@@ -1206,4 +1206,4 @@ GROUP BY
   TO_CHAR(txn_date, 'Month YYYY'),
   TO_CHAR(txn_date, 'MM')
 ORDER BY
-  TO_CHAR(txn_date, 'MM')
+  TO_CHAR(txn_date, 'MM');
